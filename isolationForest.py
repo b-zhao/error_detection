@@ -2,11 +2,6 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import IsolationForest as IF
 
-# load data
-df = pd.read_csv('data/Hospital.csv')
-X = np.array(df)
-col_names = np.array(df.columns)
-
 # isolation forest for finding outliers
 class IsolationForest:
     def __init__(self, X, trainSubset = 50, trainCount  = 10, threshold = 0.6):
@@ -42,6 +37,11 @@ class IsolationForest:
     def getOutlierX(self):
         return self.outlier_X
 
+
+# load data
+df = pd.read_csv('data/Hospital.csv')
+X = np.array(df)
+col_names = np.array(df.columns)
 
 # randomly picked two columns for outlier detection
 temp = IsolationForest(X[:,[0,5]])
