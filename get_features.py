@@ -3,6 +3,10 @@ import numpy as np
 from gensim.models import Word2Vec
 from gensim.test.utils import common_texts
 from gensim.models import Phrases
+import warnings
+
+warnings.filterwarnings('ignore')
+
 
 def convert_onehot(df, feature):
     one_hot = pd.get_dummies(df[feature], prefix=feature)
@@ -11,29 +15,17 @@ def convert_onehot(df, feature):
     df = df.drop([feature], 1)
     return df
 
-def dict_fun(key):
-    try:
-        return(model[key])
-    except:
-        return([0]*20)
-
 def convert_word2vec(df, feature, train=False):
     model = Word2Vec.load("word2vec.model")
     if train:
-        print("start training")
         model.train([df[feature]], total_examples=1, epochs=1)
-        print("finished training")
-    df[feature] = df[feature].apply(dict_fun)
-    # print(df[feature][0:10])
+    df[feature] = df[feature].apply(lambda x: model[x])
     return df
 
 
 ''' Drop columns where more than half records are NA. Then drop rows where at least one 
     attribute is NA. Return the resulting dataframe, dropped columns and dropped rows. '''
-def remove_na(data_file):
-    df = pd.read_csv(data_file)
-    print("Before remove_na: Number of records: ", df.shape[0], " :: Number of features: ", df.shape[1])
-    
+def remove_na(df):
     drop_col = df.loc[:,df.isnull().sum(axis = 0) > df.shape[0]/2]
     df = df.dropna(axis='columns', thresh=df.shape[0]/2)   
     drop_row = df.loc[df.isnull().any(axis=1)]
@@ -43,7 +35,6 @@ def remove_na(data_file):
     # num_na_col = df.isnull().sum(axis = 0)
     # print(num_na_col)  
     
-    print("After remove_na: Number of records: ", df.shape[0], " :: Number of features: ", df.shape[1])
     return df, drop_col, drop_row
 
 
@@ -60,8 +51,7 @@ def remove_type_errors(df):
                 removed_rows.append(df[col].apply(lambda x: not x.isnumeric()))
                 affect_columns.append(col)
                 df = df[df[col].apply(lambda x: x.isnumeric())]
-                df.loc[:][col] = pd.to_numeric(df[col], errors='coerce')
-    print("After remove_type_errors: Number of records: ", df.shape[0], " :: Number of features: ", df.shape[1])
+                df.loc[:,col] = pd.to_numeric(df.loc[:,col], errors='coerce')
     return df, removed_rows, affect_columns
 
 
@@ -76,26 +66,60 @@ def convert_features(df):
         num_unique = len(df[col].unique())
         if np.issubdtype(df[col].dtype, np.number): 
             # numerical
-            # print(col, "[numerical", "#unique =", num_unique, "]")
+            print(col, "[numerical", "#unique =", num_unique, "]")
             continue
         elif num_unique < 60 or (num_unique < 0.01 * df.shape[0] and num_unique < 100): 
             # categorical
-            # print(col, "[categorical", "#unique =", num_unique, "]")
+            print(col, "[categorical", "#unique =", num_unique, "]")
             df = convert_onehot(df, col)        
         else:
             # text
-            # print(col, "[text", "#unique =", num_unique, "]")
+            print(col, "[text", "#unique =", num_unique, "]")
             df = convert_word2vec(df, col)
               
-    print("After get_features: Number of records: ", df.shape[0], " :: Number of features: ", df.shape[1])
+    return df
+
+
+''' Consider text columns only. Use word2vec to assign numerical values to each attribute for each
+    record. Word2vec model is trained using records as documents and attribute values as words. 
+    Return resulting data frame. ''' 
+def convert_features2(df):
+    text_cols = []
+    for col in df.columns:
+        if not np.issubdtype(df[col].dtype, np.number): 
+            text_cols.append(col)
+            
+    X = np.array(df.loc[:,text_cols]).tolist()
+    model = Word2Vec(X, min_count=1, size=10, workers=4)
+    
+    # replace each text by the vector (10 new numerical columns)
+    new_df = pd.DataFrame()
+    for col in text_cols:
+        df[col] = df[col].apply(lambda x: model[x])
+        vec_cols = df[col].apply(pd.Series)
+        vec_cols.columns = [col + str(i) for i in range(10)]
+        new_df = pd.concat([new_df, vec_cols], axis=1)
+
+    for col in text_cols:
+        df = df.drop([col], 1)
+    df = pd.concat([df, new_df], axis=1)
     return df
 
 
 ''' Get feature vectors from a csv file. '''
 def get_feature_vecs(filename):
-    df, _, _ = remove_na(filename)
+    df = pd.read_csv(filename)
+    print("Original table: Number of records: ", df.shape[0], " :: Number of features: ", df.shape[1])
+    
+    df, _, _ = remove_na(df)
+    print("After remove_na: Number of records: ", df.shape[0], " :: Number of features: ", df.shape[1])
+    
     df, _, _ = remove_type_errors(df)
-    df = convert_features(df)
+    print("After remove_type_errors: Number of records: ", df.shape[0], " :: Number of features: ", df.shape[1])
+    
+    df = convert_features2(df)
+    print("After convert_features2: Number of records: ", df.shape[0], " :: Number of features: ", df.shape[1])
+    
     return np.array(df)
 
 # X = get_feature_vecs('data/hospital.csv')
