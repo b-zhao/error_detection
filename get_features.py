@@ -39,6 +39,7 @@ def remove_na(df):
 
 
 ''' Remove rows with non-numeric value for an attribute where >0.995 rows have numeric values.
+    Remove rows with numeric value for an attribute where >0.995 rows have non-numeric values.
     Return df, removed_rows, affect_columns''' 
 def remove_type_errors(df):
     affect_columns = []
@@ -52,7 +53,24 @@ def remove_type_errors(df):
                 affect_columns.append(col)
                 df = df[df[col].apply(lambda x: x.isnumeric())]
                 df.loc[:,col] = pd.to_numeric(df.loc[:,col], errors='coerce')
+            if mask.sum() > 0.995 * df.shape[0] and mask.sum() < 1.0:
+                removed_rows.append(df[col].apply(lambda x: x.isnumeric()))
+                affect_columns.append(col)
+                df = df[df[col].apply(lambda x: not x.isnumeric())]
     return df, removed_rows, affect_columns
+
+
+''' Remove rows with a numerical cell that is not within threshold_quantile from the 
+    column mean. '''
+def remove_outliers_gaussian(df, threshold_quantile=0.9999):
+    removed_rows = []
+    for col in df.columns:
+        if np.issubdtype(df[col].dtype, np.number): 
+            upper_bound = df[col].quantile(threshold_quantile)
+            lower_bound = df[col].quantile(1 - threshold_quantile)
+            removed_rows.append(df[col].apply(lambda x: x >= upper_bound or x <= lower_bound))
+            df = df[df[col].apply(lambda x: x < upper_bound and x > lower_bound)]
+    return df, removed_rows
 
 
 ''' Numerical columns remain the same. Categorical columns are one-hot encoded. Texts are 
@@ -116,6 +134,9 @@ def get_feature_vecs(filename):
     
     df, _, _ = remove_type_errors(df)
     print("After remove_type_errors: Number of records: ", df.shape[0], " :: Number of features: ", df.shape[1])
+    
+    df, _ = remove_outliers_gaussian(df)
+    print("After remove_outliers_gaussian: Number of records: ", df.shape[0], " :: Number of features: ", df.shape[1])
     
     df = convert_features2(df)
     print("After convert_features2: Number of records: ", df.shape[0], " :: Number of features: ", df.shape[1])
