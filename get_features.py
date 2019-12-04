@@ -144,5 +144,8 @@ def get_feature_vecs(filename):
     return np.array(df)
 
 # X = get_feature_vecs('data/hospital.csv')
-X = get_feature_vecs('data/people.csv')
+# X = get_feature_vecs('data/people.csv')
+# np.save("data/people_features.npy", X)
+
+
 
