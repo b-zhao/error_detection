@@ -21,22 +21,9 @@ def affinity_matrix_binary(filename):
     return affinity_matrix
 
 
-# def affinity_matrix(filename, sim_funcs):
-#     df = pd.read_csv(filename)
-#     df, _, _ = remove_na(df)
-#     df, _, _ = remove_type_errors(df)
-        
-#     affinity_matrix = np.zeros((len(sim_func), df.shape[0], df.shape[0]))
-#     for f in sim_funcs:
-#         for i in row:
-#             for j in row:
-#                 affinity_matrix[f][i][j] = sim_funcs(df.loc(i), df.loc(j))
-#     return affinity_matrix
-
-
-start_time = time.time()
-affinity_matrix = affinity_matrix_binary("data/hospital.csv")
-print("Affinity matrix shape: ", np.shape(affinity_matrix))
-print("runtime: %s seconds" % (time.time() - start_time))
+# start_time = time.time()
+# affinity_matrix = affinity_matrix_binary("data/hospital.csv")
+# print("Affinity matrix shape: ", np.shape(affinity_matrix))
+# print("runtime: %s seconds" % (time.time() - start_time))
 # print(affinity_matrix[2][2])
 # print(affinity_matrix[2][1])

@@ -29,13 +29,13 @@ Args:
 Return:
     A: Nx1 array, A[i] = probability that tuple i has no error
 '''
-def assign_label(P, lr=0.01, max_epoch=200):
+def assign_label(P, lr=0.01, max_iter=200):
     N = np.shape(P)[0]
     A = np.random.random(N)
 
     l = loss(A, P, N)
     min_loss = l
-    for t in range(max_epoch):
+    for t in range(max_iter):
         grad = gradient(A, P, N)
         A = A - lr * grad
         A = mask(A)
@@ -51,12 +51,12 @@ def assign_label(P, lr=0.01, max_epoch=200):
 
 
 # test: the second tuple contains an error
-P = np.array([  [1, 0, 1, 1, 1],
-                [0, 0, 0, 0, 0],
-                [1, 0, 1, 1, 1],
-                [1, 0, 1, 1, 1],
-                [1, 0, 1, 1, 1]  ])
-# P = np.random.random((1000, 1000))
-A = assign_label(P)
-print(A)
+# P = np.array([  [1, 0, 1, 1, 1],
+#                 [0, 0, 0, 0, 0],
+#                 [1, 0, 1, 1, 1],
+#                 [1, 0, 1, 1, 1],
+#                 [1, 0, 1, 1, 1]  ])
+# # P = np.random.random((1000, 1000))
+# A = assign_label(P)
+# print(A)
 
