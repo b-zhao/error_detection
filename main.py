@@ -21,11 +21,11 @@ def main():
     IF = IsolationForest(X, trainSubset=100, trainCount=200, threshold=0.99)
     IF.train()
     inlier_idx = IF.getInlierIndex()
-    print(np.shape(inlier_idx))'''
+    print(np.shape(inlier_idx))
     
     P = np.zeros((num_rows**2))
     P[inlier_idx] = 1
-    P = P.reshape((num_rows, num_rows))
+    P = P.reshape((num_rows, num_rows))'''
  
     # assign labels
     A = assign_label(P, lr=0.01, max_iter=200)
