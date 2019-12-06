@@ -146,21 +146,22 @@ class GMM(object):
     
 # X = get_feature_vecs('data/hospital.csv')
 # np.save("data/hospital_features.npy", X)
-X = np.load("data/hospital_features.npy")
-X_normalized = np.empty_like(X)
+
+# X = np.load("data/hospital_features.npy")
+# X_normalized = np.empty_like(X)
 
 # normalize each column
-for i in range(np.shape(X)[1]):
-    r = (np.amax(X[:,i]) - np.amin(X[:,i]))
-    if r != 0:
-        X_normalized[:,i] = (X[:,i] - np.amin(X[:,i])) / r
-    else:
-        X_normalized[:,i] = (X[:,i] - np.amin(X[:,i]))
+# for i in range(np.shape(X)[1]):
+#     r = (np.amax(X[:,i]) - np.amin(X[:,i]))
+#     if r != 0:
+#         X_normalized[:,i] = (X[:,i] - np.amin(X[:,i])) / r
+#     else:
+#         X_normalized[:,i] = (X[:,i] - np.amin(X[:,i]))
         
-gamma, (pi, mu, sigma) = GMM()(X_normalized, K=1, max_iters=100)
-print(gamma)
-print(pi)
-print(mu)
-print(sigma)
+# gamma, (pi, mu, sigma) = GMM()(X_normalized, K=1, max_iters=100)
+# print(gamma)
+# print(pi)
+# print(mu)
+# print(sigma)
 
     

@@ -1,5 +1,5 @@
 Employee ID,Employment Length,First Name,Last Name,Age,Dpt Code,Department
-931364,2,Oz,Cain,79,FIN,Finance
+931364,2,Calla,Conan,40,MAR,Marketing
 624534,8,Calla,Conan,40,MAR,Marketing
 832620,4,Brittania,Truda,36,MAR,Marketing
 808119,6,Lorna,Alsatia,33,IT,Information Technology
@@ -99,7 +99,7 @@ Employee ID,Employment Length,First Name,Last Name,Age,Dpt Code,Department
 122935,0,Zia,Annamika,61,MAR,Marketing
 363315,1,Chase,Talen,16,IT,Information Technology
 334666,4,Palesa,Julio,77,IT,Information Technology
-931364,8,Calla,Conan,40,MAR,Marketing
+931364,2,Oz,Cain,79,FIN,Finance
 624534,8,Calla,Conan,40,MAR,Marketing
 832620,4,Brittania,Truda,36,MAR,Marketing
 808119,6,Lorna,Alsatia,33,IT,Information Technology
