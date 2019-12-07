@@ -1,44 +1,48 @@
 import numpy as np
-from GMM import *
-from get_affinity_matrices import *
-from label_assignment import *
-from isolationForest import *
-from outlier_detections import *
+from get_affinity_matrices import affinity_matrix_binary
+from label_assignment import assign_label
+from outlier_detections import gaussian_prob  
 
-def main():
-    X = affinity_matrix_binary("data/employee.csv")
+'''
+filename: a csv file 
+upper_only: only use distinct tuple pairs (above diagonal in affinity matrix) for Gaussian distribution 
+'''
+def main(filename, upper_only):
+    X = affinity_matrix_binary(filename)
     num_rows, _, num_cols = np.shape(X)
-    print("affinity matrix dimension: ", np.shape(X))
-    X = X.reshape((num_rows**2, num_cols))
     
-    # Gaussian for outlier
-    normalized_X = np.sqrt(X / np.sum(X, axis=0)) # normalize by column
-    gamma, (pi, mu, sigma) = GMM()(normalized_X, K=1, max_iters=100)
-    mu = mu.reshape(np.shape(mu)[1])
-    sigma = sigma.reshape((np.shape(sigma)[1:]))
-    P = gaussian_prob(normalized_X, mu, sigma)
-    P = P.reshape((num_rows, num_rows))
-
+    if upper_only:
+        triu_idx = np.triu_indices(num_rows, 1)
+        X = X[triu_idx]
+    else:
+        X = X.reshape((num_rows**2, num_cols))
     
-    '''# Local Outlier Factor
-    P = LOF(X)
-    P = LOF2prob(P)
-    P = P.reshape((num_rows, num_rows))'''
-
-    '''# Isoforest for outlier
-    IF = IsolationForest(X, trainSubset=100, trainCount=200, threshold=0.99)
-    IF.train()
-    inlier_idx = IF.getInlierIndex()    
-    P = np.zeros((num_rows**2))
-    P[inlier_idx] = 1
-    P = P.reshape((num_rows, num_rows))'''
+    # now each row of X is a similarity vector of a tuple pair
+    # describe X using a Gaussian
+    mu = np.mean(X, axis=0)
+    sigma = np.cov(X, rowvar=0)
+    
+    # get probability of containing no error, for every tuple pair
+    P = gaussian_prob(X, mu, sigma)
+    
+    # if upper_only, restore full size matrix P by seting diagonal and lower trianger to 0
+    if upper_only:
+        restored_P = np.zeros((num_rows, num_rows))
+        counter = 0
+        for r in range(num_rows):
+            for c in range(r + 1, num_rows):
+                restored_P[r][c] = P[counter]
+                counter += 1
+        P = restored_P
+    else:
+        P = P.reshape((num_rows, num_rows))
  
     # assign labels
-    A = assign_label(P, lr=0.01, max_iter=200)
-    print("First 20 entries in A: ", A[:20])
+    A = assign_label(P, upper_only, loss_func='method2', lr=0.01, max_iter=200)
+    print("First 20 entries in A: ", A[:10])
 
 
 
 if __name__ == '__main__':
-    main()
+    main("data/employee_err.csv", True)
     
