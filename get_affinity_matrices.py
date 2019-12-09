@@ -21,6 +21,10 @@ def affinity_matrix_binary(filename):
 
     return affinity_matrix
 
+'''
+Return affinity matrix A. A[i][j][f] = abs(t_i[f] - t_j[f]) if numerical, 
+lev_dist(t_i[f], t_j[f]) otherwise
+'''
 def affinity_matrix_similarity(filename):
     df = pd.read_csv(filename)
     df, _, _ = remove_na(df)
@@ -33,8 +37,10 @@ def affinity_matrix_similarity(filename):
         row_i_tile = np.tile(np.array(X[i]), (num_rows, 1))
         for j in range(int(num_rows)):
             for k in range(int(num_cols)):
-                affinity_matrix[i][j][k] = em.lev_dist(X[j][k], row_i_tile[j][k])
-
+                if np.issubdtype(type(X[i][k]), np.number): 
+                    affinity_matrix[i][j][k] = abs(X[i][k] - X[j][k])
+                else:
+                    affinity_matrix[i][j][k] = em.lev_dist(X[j][k], row_i_tile[j][k])
     return affinity_matrix
 
 # start_time = time.time()

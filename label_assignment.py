@@ -1,6 +1,22 @@
 import numpy as np
 
+# loss function on the report
 def loss1(A, P, N, upper_only):
+    loss = (np.linalg.norm(np.outer(A, A) - P))**2 - np.inner(A, A)
+    return loss
+
+# gradients on the report
+def gradient1(A, P, N, upper_only):
+    grad = np.zeros(N)
+    for i in range(N):
+        for j in range(N):
+            grad[i] = grad[i] + (A[i] * A[j] - P[i][j]) * A[j]
+        grad[i] = grad[i] - (A[i] * A[i] - P[i][i]) * A[i]
+    return grad
+
+
+# alternative loss function (see label_assignment doc on Overleaf)
+def loss2(A, P, N, upper_only):
     if not upper_only:
         p_ = 1 - 2 * P
         product = 0
@@ -10,14 +26,15 @@ def loss1(A, P, N, upper_only):
         return product + np.sum(P)
     else:
         p_ = 1 - 2 * P
+        np.fill_diagonal(p_, 0)
         product = 0
         for i in range(N):
             for j in range(i+1, N):
                 product = product + (p_[i][j] * A[i] * A[j])
-        return product + np.sum(P)
+        return product + np.sum(P) / 2
 
-
-def gradient1(A, P, N, upper_only):
+# gradients for alternative loss function
+def gradient2(A, P, N, upper_only):
     if not upper_only:
         grad = np.zeros(N)
         p_ = 1 - 2 * P
@@ -38,26 +55,6 @@ def gradient1(A, P, N, upper_only):
             grad[i] = np.dot(p_[i], A)
         return grad 
 
-def loss2(A, P, N, upper_only):
-    loss = 0
-    for i in range(N):
-        for j in range(i+1, N):
-            loss = loss + (A[i] * A[j] - P[i][j]) ** 2      
-    return loss * 0.5
-
-
-def gradient2(A, P, N, upper_only):
-    i_lower = np.tril_indices(np.shape(P)[0], -1)
-    P[i_lower] = P.T[i_lower]
-    
-    grad = np.zeros(N)
-    for i in range(N):
-        for j in range(N):
-            grad[i] = grad[i] + (A[i] * A[j] - P[i][j]) * A[j]
-        grad[i] = grad[i] - (A[i] * A[i] - P[i][i]) * A[i]
-    return grad
-
-    
 def mask(A):
     A[A>1] = 1
     A[A<0] = 0
@@ -77,6 +74,11 @@ def assign_label(P, upper_only=True, loss_func='method1', lr=0.01, max_iter=200)
     N = np.shape(P)[0]
     A = np.random.random(N)
     
+    # make P.T = P (fill lower triangle)
+    i_lower = np.tril_indices(np.shape(P)[0], -1)
+    P[i_lower] = P.T[i_lower]
+    # print(np.allclose(P.T, P))
+    
     # gradient descent
     l = loss1(A, P, N, upper_only) if loss_func == 'method1' else loss2(A, P, N, upper_only)
     min_loss = l
@@ -87,12 +89,17 @@ def assign_label(P, upper_only=True, loss_func='method1', lr=0.01, max_iter=200)
         new_loss = loss1(A, P, N, upper_only) if loss_func == 'method1' else loss2(A, P, N, upper_only)
 
         # if converged, stop
-        if abs(new_loss - l) < 0.01 and abs(new_loss - min_loss) < 0.01:
+        # if abs(new_loss - l) < 0.01 and abs(new_loss - min_loss) < 0.01:
+        if np.linalg.norm(grad) / np.shape(A)[0] < 1e-8:
             break
             
         if new_loss < min_loss:
             min_loss = new_loss
         l = new_loss
+        
+        if t == max_iter - 1:
+            print("Max iteration reached: label assignment did not converge. ")
+
     return A
 
 
@@ -103,6 +110,6 @@ def assign_label(P, upper_only=True, loss_func='method1', lr=0.01, max_iter=200)
 #                 [1, 0, 1, 1, 1],
 #                 [1, 0, 1, 1, 1]  ])
 # # P = np.random.random((1000, 1000))
-# A = assign_label(P)
+# A = assign_label(P, upper_only=True, loss_func='method2')
 # print(A)
 
