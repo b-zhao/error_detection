@@ -86,5 +86,5 @@ def single_row_feature_approach(filename):
 if __name__ == '__main__':
     A = affinity_approach("data/employee_err.csv", True)
 #     A = single_row_feature_approach("data/employee_err.csv")
-    print("First 20 entries in A: ", A[:10])
+    print("First 20 entries in A: ", A[:20])
     
