@@ -1,7 +1,6 @@
-# possible models
-1. Design features -> design similarity function -> generative model (input: affinity matrix, output: labels)
-2. Design features -> generative model (input: features, output: labels)
+Command to run the code: python3 main.py
+The code prints out the first 20 entries in A. 
 
-Labels are {erroneous, not erroneous}
+To perform error detection on a different file, change the file name at the bottom of main.py. 
 
-Possible choices of features: numerical columns can remain the same; categorical columns can be converted to one-hot; text can be encoded using word2vec
+To run the single-row feature approach or to use different outlier detection methods, uncomment the corresponding parts in main.py
